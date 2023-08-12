@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(GraphicLib DESCRIPTION "Simple X11 2D graphics library with physics" LANGUAGES CXX)
+project(GraphicLib DESCRIPTION "Simple X11 2D graphics engine with physics" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
