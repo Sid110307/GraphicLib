@@ -10,7 +10,12 @@ else ()
 endif ()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-add_executable(graphicLib src/main.cpp)
+add_executable(graphicLib
+        src/main.cpp
+        src/application.cpp
+        src/window.cpp
+        src/physics.cpp
+)
 
 find_package(X11 REQUIRED)
 target_link_libraries(graphicLib X11)
