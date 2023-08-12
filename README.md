@@ -27,7 +27,7 @@ $ cmake --build bin --target all -j4
 - Run the executable
 
 ```bash
-$ ./bin/GraphicLib
+$ ./bin/graphicLib
 ```
 
 ## License
