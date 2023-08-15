@@ -1,6 +1,6 @@
 # GraphicLib
 
-> Simple X11 2D graphics engine with physics.
+> Simple X11 graphics engine with physics.
 
 ## Requirements
 

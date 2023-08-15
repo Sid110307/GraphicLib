@@ -16,10 +16,11 @@ public:
     void updatePhysics();
 
 private:
+    static constexpr double maxTiltAngle = 45.0, bounceFactor = 0.6, playerMass = 1.25;
+
     long inputFlags = ExposureMask | KeyPressMask | KeyReleaseMask;
     X11Window x11Window;
 
-    int x, y, yVelocity;
+    int x, y, rotationAngle = 0, yVelocity;
     bool physicsEnabled = false, bounceEnabled = true;
-    double bounceFactor = 0.6;
 };

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <cmath>
 #include <any>
 
 #include <X11/Xlib.h>
@@ -16,13 +17,13 @@ public:
     {
     public:
         template<typename T>
-        void setVariable(const std::string &name, T value)
+        void set(const std::string &name, T value)
         {
             variables[name] = value;
         }
 
         template<typename T>
-        T getVariable(const std::string &name)
+        T get(const std::string &name)
         {
             auto it = variables.find(name);
             if (it != variables.end())
@@ -44,11 +45,12 @@ public:
     };
 
     static constexpr int WIDTH = 800, HEIGHT = 600;
+    static constexpr int PLAYER_WIDTH = 50, PLAYER_HEIGHT = 50;
 
     explicit X11Window(long inputFlags);
     ~X11Window();
 
-    void draw(int x, int y);
+    void draw(int x, int y, int angle);
 
     Display *display;
     Window window;
@@ -59,4 +61,6 @@ private:
     int screen;
     GC gc;
     XFontStruct *font;
+
+    void updatePlayer(int x, int y, int angle);
 };

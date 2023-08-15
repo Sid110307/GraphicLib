@@ -3,46 +3,7 @@
 Application::Application() : x11Window(inputFlags), x(0), y(0), yVelocity(0)
 {
     randomizePosition();
-    x11Window.draw(x, y);
-}
-
-void Application::randomizePosition()
-{
-    std::mt19937 mt((std::random_device()()));
-
-    x = std::uniform_int_distribution<int>(0, X11Window::WIDTH - 100)(mt);
-    y = std::uniform_int_distribution<int>(0, X11Window::HEIGHT - 100)(mt);
-}
-
-void Application::updatePhysics()
-{
-    yVelocity += 1;
-    y += yVelocity;
-
-    if (y + 100 > X11Window::HEIGHT)
-    {
-        y = X11Window::HEIGHT - 100;
-        yVelocity = (int) (-yVelocity * (bounceEnabled ? bounceFactor : 0));
-    }
-
-    if (x + 100 > X11Window::WIDTH) x = X11Window::WIDTH - 100;
-    if (x < 0) x = 0;
-
-    if (y < 0)
-    {
-        y = 0;
-        yVelocity = (int) (-yVelocity * (bounceEnabled ? bounceFactor : 0));
-    }
-
-    if (x11Window.collisionManager.checkCollision(CollisionObject(x, y, 100, 100)))
-    {
-        CollisionObject *object = x11Window.collisionManager.checkCollision(CollisionObject(x, y, 100, 100));
-
-        y = object->y - 100;
-        yVelocity = (int) (-yVelocity * (bounceEnabled ? bounceFactor : 0));
-    }
-
-    x11Window.draw(x, y);
+    x11Window.draw(x, y, rotationAngle);
 }
 
 void Application::run()
@@ -55,7 +16,7 @@ void Application::run()
             switch (event.type)
             {
                 case Expose:
-                    x11Window.draw(x, y);
+                    x11Window.draw(x, y, rotationAngle);
                     break;
                 case KeyPress:
                     switch (XLookupKeysym(&event.xkey, 0))
@@ -78,6 +39,8 @@ void Application::run()
                         case XK_Return:
                             x = 0;
                             y = 0;
+                            rotationAngle = 0;
+                            yVelocity = 0;
 
                             break;
                         case XK_p:
@@ -92,10 +55,10 @@ void Application::run()
                             break;
                     }
 
-                    x11Window.draw(x, y);
+                    x11Window.draw(x, y, rotationAngle);
                     break;
                 case KeyRelease:
-                    x11Window.draw(x, y);
+                    x11Window.draw(x, y, rotationAngle);
                     break;
                 default:
                     break;
@@ -103,10 +66,60 @@ void Application::run()
         }
 
         if (physicsEnabled) updatePhysics();
-        x11Window.variableManager.setVariable("physicsEnabled", physicsEnabled);
-        x11Window.variableManager.setVariable("bounceEnabled", bounceEnabled);
-        x11Window.variableManager.setVariable("bounceFactor", bounceFactor);
+        x11Window.variableManager.set("physicsEnabled", physicsEnabled);
+        x11Window.variableManager.set("bounceEnabled", bounceEnabled);
+        x11Window.variableManager.set("maxTiltAngle", maxTiltAngle);
+        x11Window.variableManager.set("bounceFactor", bounceFactor);
+        x11Window.variableManager.set("yVelocity", yVelocity);
+        x11Window.variableManager.set("playerMass", playerMass);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+}
+
+void Application::randomizePosition()
+{
+    std::mt19937 mt((std::random_device()()));
+
+    x = std::uniform_int_distribution<int>(0, X11Window::WIDTH - 100)(mt);
+    y = std::uniform_int_distribution<int>(0, X11Window::HEIGHT - 100)(mt);
+}
+
+void Application::updatePhysics()
+{
+    yVelocity += static_cast<int>(std::round(1 * playerMass));
+    y += yVelocity;
+
+    if (y + X11Window::PLAYER_HEIGHT > X11Window::HEIGHT)
+    {
+        y = X11Window::HEIGHT - X11Window::PLAYER_HEIGHT;
+        yVelocity = static_cast<int>(-yVelocity * (bounceEnabled ? bounceFactor : 0));
+    }
+    if (y < 0)
+    {
+        y = 0;
+        yVelocity = static_cast<int>(-yVelocity * (bounceEnabled ? bounceFactor : 0));
+    }
+
+    if (x + X11Window::PLAYER_WIDTH > X11Window::WIDTH) x = X11Window::WIDTH - X11Window::PLAYER_WIDTH;
+    if (x < 0) x = 0;
+
+    if (rotationAngle > 360) rotationAngle -= 360;
+    if (rotationAngle < -360) rotationAngle += 360;
+
+    CollisionObject player(x, y, X11Window::PLAYER_WIDTH, X11Window::PLAYER_HEIGHT, 0, yVelocity, playerMass);
+    if (x11Window.collisionManager.checkCollision(player))
+    {
+        CollisionObject *object = x11Window.collisionManager.checkCollision(player);
+
+        y = object->y - X11Window::PLAYER_HEIGHT;
+        yVelocity = static_cast<int>(-yVelocity * (bounceEnabled ? bounceFactor : 0));
+
+        int tiltValue = static_cast<int>(std::clamp(
+                std::abs(object->x + object->width / 2 - (x + X11Window::PLAYER_WIDTH / 2)) / 10.0, -maxTiltAngle,
+                maxTiltAngle));
+        rotationAngle = object->x + object->width / 2 < x + X11Window::PLAYER_WIDTH / 2 ? tiltValue : -tiltValue;
+    }
+
+    x11Window.draw(x, y, rotationAngle);
 }
