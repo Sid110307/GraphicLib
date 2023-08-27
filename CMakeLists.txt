@@ -17,5 +17,12 @@ add_executable(graphicLib
         src/physics.cpp
 )
 
-find_package(X11 REQUIRED)
-target_link_libraries(graphicLib X11 m)
+if (APPLE)
+  include_directories(/opt/X11/include)
+  link_directories(/opt/X11/lib)
+  target_link_libraries(graphicLib m)
+else ()
+  find_package(X11 REQUIRED)
+  target_link_libraries(graphicLib X11 m)
+endif ()
+
